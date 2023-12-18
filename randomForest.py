@@ -84,9 +84,6 @@ new_data['Q16_new'] = new_data['Q16_new'].map(lambda x: 1 if x >= 1.5 else 0)
 X = new_data.drop('Q16_new', axis=1)
 y = new_data['Q16_new']
 
-X = new_data.drop('Q16_new', axis=1)
-y = new_data['Q16_new']
-
 # Convert all columns to int64
 for column in new_data.columns:
     new_data[column] = new_data[column].astype("int64")

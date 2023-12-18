@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 from sklearn import metrics
 from sklearn.preprocessing import LabelEncoder
 
@@ -81,9 +81,6 @@ new_data['Q16_new'] = new_data['Q16_new'].map(lambda x: 1 if x >= 1.5 else 0)
 X = new_data.drop('Q16_new', axis=1)
 y = new_data['Q16_new']
 
-X = new_data.drop('Q16_new', axis=1)
-y = new_data['Q16_new']
-
 # Convert all columns to int64
 for column in new_data.columns:
     new_data[column] = new_data[column].astype("int64")
@@ -93,26 +90,27 @@ X = new_data.drop('Q16_new', axis=1)
 y = new_data['Q16_new']
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Initialize the Gaussian Naive Bayes classifier
-nb_classifier = GaussianNB()
+# Initialize the Multinomial Naive Bayes classifier
+mnb_classifier = MultinomialNB()
 
 # Fit the classifier on the training data
-nb_classifier.fit(X_train, y_train)
+mnb_classifier.fit(X_train, y_train)
 
 # Make predictions on the test data
-y_pred = nb_classifier.predict(X_test)
+y_pred_mnb = mnb_classifier.predict(X_test)
 
 # Calculate additional metrics
-roc_auc = metrics.roc_auc_score(y_test, y_pred)
-accuracy = metrics.accuracy_score(y_test, y_pred)
-precision = metrics.precision_score(y_test, y_pred)
-recall = metrics.recall_score(y_test, y_pred)
-f1_score = metrics.f1_score(y_test, y_pred)
-mcc = metrics.matthews_corrcoef(y_test, y_pred)
+roc_auc = metrics.roc_auc_score(y_test, y_pred_mnb)
+accuracy = metrics.accuracy_score(y_test, y_pred_mnb)
+precision = metrics.precision_score(y_test, y_pred_mnb)
+recall = metrics.recall_score(y_test, y_pred_mnb)
+f1_score = metrics.f1_score(y_test, y_pred_mnb)
+mcc = metrics.matthews_corrcoef(y_test, y_pred_mnb)
 
 # Print the metrics
+print("Multinomial Naive Bayes")
 print(f"AUC: {roc_auc}")
 print(f"Accuracy: {accuracy}")
 print(f"F1 Score: {f1_score}")

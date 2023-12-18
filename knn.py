@@ -117,6 +117,7 @@ mcc = matthews_corrcoef(y_test, y_pred)
 accuracy = accuracy_score(y_test, y_pred)
 
 # Print the metrics
+print("KNN")
 print(f"AUC: {roc_auc}")
 print(f"Accuracy: {accuracy}")
 print(f"F1 Score: {f1}")
