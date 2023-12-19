@@ -63,7 +63,6 @@ data['Q16_new'] = label_encoder.fit_transform(data['Q16'])
 
 print(data.info())
 
-
 new_data = data
 new_data = new_data.drop("Q16", axis=1)
 print(new_data.info())
@@ -82,14 +81,12 @@ new_data[columns_to_convert] = new_data[columns_to_convert].astype("float64")
 new_data['Q16_new'] = new_data['Q16_new'].map(lambda x: 1 if x >= 1.5 else 0)
 new_data['Q16_new'] = new_data['Q16_new'].astype("float64")
 
-
 X = new_data.drop('Q16_new', axis=1)
 y = new_data['Q16_new']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
 
 classifier = Sequential()
-
 
 classifier.add(Dense(kernel_initializer="uniform", activation='relu',units=64, input_dim=X_train.shape[1]))
 
