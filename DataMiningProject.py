@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, precision_score, recall_score, matthews_corrcoef
 from sklearn import svm
 from sklearn import metrics
@@ -14,6 +15,8 @@ from sklearn.model_selection import train_test_split
 # from keras.models import Sequential
 # from keras.layers import Dense
 from sklearn.feature_selection import RFECV
+from sklearn.tree import DecisionTreeClassifier
+
 # from keras.layers import Input
 
 data = pd.read_excel('Electric Vehicles.xls')
@@ -301,6 +304,119 @@ print(f"MCC: {mcc}")
 # print("Precision:", precision_rf)
 # print("Recall:", recall_rf)
 # print("MCC:", mcc_rf)
+
+# Gradient Boosting Classifier
+# Veriyi eğitim ve test setlerine ayır
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+
+# Modeli eğit
+model.fit(X_train, y_train)
+
+# Test seti üzerinde tahmin yap
+y_pred_proba = model.predict_proba(X_test)[:, 1]  # Olasılıkları al
+y_pred = model.predict(X_test)
+print(f'\ngradient boosting')
+# AUC değerini hesapla
+auc = roc_auc_score(y_test, y_pred_proba)
+print(f'AUC: {auc}')
+
+# Accuracy değerini hesapla
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy}')
+
+# F1 Score değerini hesapla
+# f1 = f1_score(y_test, y_pred)
+# print(f'F1 Score: {f1}')
+
+# Precision değerini hesapla
+precision = precision_score(y_test, y_pred)
+print(f'Precision: {precision}')
+
+# Recall değerini hesapla
+recall = recall_score(y_test, y_pred)
+print(f'Recall: {recall}')
+
+# MCC değerini hesapla
+mcc = matthews_corrcoef(y_test, y_pred)
+print(f'MCC: {mcc}')
+
+# Ada boost
+# Veriyi eğitim ve test setlerine ayır
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# AdaBoost Classifier modelini oluştur
+base_model = DecisionTreeClassifier(max_depth=3)  # Zayıf öğrenici olarak karar ağacı kullanıyoruz
+model = AdaBoostClassifier(base_model, n_estimators=100, learning_rate=0.1, random_state=42)
+
+# Modeli eğit
+model.fit(X_train, y_train)
+
+# Test seti üzerinde tahmin yap
+y_pred_proba = model.predict_proba(X_test)[:, 1]  # Olasılıkları al
+
+# Performans metriklerini hesapla
+auc = roc_auc_score(y_test, y_pred_proba)
+accuracy = accuracy_score(y_test, model.predict(X_test))
+# f1 = f1_score(y_test, model.predict(X_test))
+precision = precision_score(y_test, model.predict(X_test))
+recall = recall_score(y_test, model.predict(X_test))
+
+# Sonuçları ekrana yazdır
+print(f'\nAda boost')
+print(f'AUC: {auc}')
+print(f'Accuracy: {accuracy}')
+# print(f'F1 Score: {f1}')
+print(f'Precision: {precision}')
+print(f'Recall: {recall}')
+
+# Decision tree
+# Veriyi eğitim ve test setlerine ayır
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Decision Tree Classifier modelini oluştur
+model = DecisionTreeClassifier(max_depth=3)
+model.fit(X_train, y_train)
+
+# Test seti üzerinde tahmin yap
+y_pred = model.predict(X_test)
+
+# Performans metriklerini hesapla
+accuracy = accuracy_score(y_test, y_pred)
+# f1 = f1_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+roc_auc = roc_auc_score(y_test, y_pred)
+
+# Sonuçları ekrana yazdır
+print(f'\nDecision tree')
+print(f'Accuracy: {accuracy}')
+# print(f'F1 Score: {f1}')
+print(f'Precision: {precision}')
+print(f'ROC-AUC: {roc_auc}')
+
+# SGDClassifier
+# Veriyi eğitim ve test setlerine ayır
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = make_pipeline(StandardScaler(), SGDClassifier(max_iter=1000, random_state=42))
+model.fit(X_train, y_train)
+
+# Test seti üzerinde tahmin yap
+y_pred = model.predict(X_test)
+
+# Performans metriklerini hesapla
+accuracy = accuracy_score(y_test, y_pred)
+# f1 = f1_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+roc_auc = roc_auc_score(y_test, y_pred)
+
+# Sonuçları ekrana yazdır
+print('\nSGD Classifier')
+print(f'Accuracy: {accuracy}')
+# print(f'F1 Score: {f1}')
+print(f'Precision: {precision}')
+print(f'ROC-AUC: {roc_auc}')
 
 # Models with Feature Selection
 
