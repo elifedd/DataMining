@@ -2,17 +2,19 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score, precision_score, recall_score, matthews_corrcoef
 from sklearn import svm
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential
-from keras.layers import Dense
+# from keras.models import Sequential
+# from keras.layers import Dense
 from sklearn.feature_selection import RFECV
-from keras.layers import Input
+# from keras.layers import Input
 
 data = pd.read_excel('Electric Vehicles.xls')
 
@@ -82,10 +84,10 @@ for column in new_data.columns:
 print(new_data.info())
 print(new_data)
 
-# threshold = 3
-# columns_to_convert = new_data.loc[:, 'Q14':'Q21'].columns
-# new_data[columns_to_convert] = new_data[columns_to_convert].map(lambda x: 1 if x >= threshold else 0)
-# new_data[columns_to_convert] = new_data[columns_to_convert].astype("float64")
+threshold = 3
+columns_to_convert = new_data.loc[:, 'Q14':'Q21'].columns
+new_data[columns_to_convert] = new_data[columns_to_convert].map(lambda x: 1 if x >= threshold else 0)
+new_data[columns_to_convert] = new_data[columns_to_convert].astype("float64")
 
 new_data['Q16_new'] = new_data['Q16_new'].map(lambda x: 1 if x >= 1.5 else 0)
 new_data['Q16_new'] = new_data['Q16_new'].astype("float64")
@@ -160,43 +162,145 @@ print("MCC:", mcc)
 
 # Neural Network
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
+#
+# classifier = Sequential()
+#
+# classifier.add(Input(shape=(X_train.shape[1],)))
+#
+# classifier.add(Dense(units=64, kernel_initializer="uniform", activation='relu'))
+# classifier.add(Dense(units=32, kernel_initializer="uniform", activation='relu'))
+# classifier.add(Dense(units=1, kernel_initializer="uniform", activation='sigmoid'))
+#
+# classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+#
+# classifier.fit(X_train, y_train, batch_size=10, epochs=8, validation_split=0.2, verbose=2)
+#
+# predictions = classifier.predict(X_test)
+#
+# roc_auc = roc_auc_score(y_test, predictions)
+#
+# accuracy = accuracy_score(y_test, (predictions > 0.5).astype(int))
+#
+# f1 = f1_score(y_test, (predictions > 0.5).astype(int))
+#
+# precision = precision_score(y_test, (predictions > 0.5).astype(int))
+#
+# recall = recall_score(y_test, (predictions > 0.5).astype(int))
+#
+# mcc = matthews_corrcoef(y_test, (predictions > 0.5).astype(int))
+#
+# print("Neural Network: ")
+# print("AUC:", roc_auc)
+# print("Accuracy:", accuracy)
+# print("F1 Score:", f1)
+# print("Precision:", precision)
+# print("Recall:", recall)
+# print("MCC:", mcc)
 
-classifier = Sequential()
+# KNN
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-classifier.add(Input(shape=(X_train.shape[1],)))
+# Initialize k-NN classifier with k=8
+knn_classifier = KNeighborsClassifier(n_neighbors=18)
 
-classifier.add(Dense(units=64, kernel_initializer="uniform", activation='relu'))
-classifier.add(Dense(units=32, kernel_initializer="uniform", activation='relu'))
-classifier.add(Dense(units=1, kernel_initializer="uniform", activation='sigmoid'))
+# Train the classifier
+knn_classifier.fit(X_train, y_train)
 
-classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# Predictions on the test set
+y_pred = knn_classifier.predict(X_test)
 
-classifier.fit(X_train, y_train, batch_size=10, epochs=8, validation_split=0.2, verbose=2)
+# Calculate additional metrics
+roc_auc = roc_auc_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+mcc = matthews_corrcoef(y_test, y_pred)
 
-predictions = classifier.predict(X_test)
+# Evaluate the classifier
+accuracy = accuracy_score(y_test, y_pred)
 
-roc_auc = roc_auc_score(y_test, predictions)
+# Print KNN metrics
+print("\nKNN:")
+print(f"AUC: {roc_auc}")
+print(f"Accuracy: {accuracy}")
+print(f"F1 Score: {f1}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"MCC: {mcc}")
 
-accuracy = accuracy_score(y_test, (predictions > 0.5).astype(int))
+# Multinomial Naive Bayes
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-f1 = f1_score(y_test, (predictions > 0.5).astype(int))
+# Initialize the Multinomial Naive Bayes classifier
+mnb_classifier = MultinomialNB()
 
-precision = precision_score(y_test, (predictions > 0.5).astype(int))
+# Fit the classifier on the training data
+mnb_classifier.fit(X_train, y_train)
 
-recall = recall_score(y_test, (predictions > 0.5).astype(int))
+# Make predictions on the test data
+y_pred_mnb = mnb_classifier.predict(X_test)
 
-mcc = matthews_corrcoef(y_test, (predictions > 0.5).astype(int))
+# Calculate additional metrics
+roc_auc = metrics.roc_auc_score(y_test, y_pred_mnb)
+accuracy = metrics.accuracy_score(y_test, y_pred_mnb)
+precision = metrics.precision_score(y_test, y_pred_mnb)
+recall = metrics.recall_score(y_test, y_pred_mnb)
+f1_score = metrics.f1_score(y_test, y_pred_mnb)
+mcc = metrics.matthews_corrcoef(y_test, y_pred_mnb)
 
-print("Neural Network: ")
-print("AUC:", roc_auc)
-print("Accuracy:", accuracy)
-print("F1 Score:", f1)
-print("Precision:", precision)
-print("Recall:", recall)
-print("MCC:", mcc)
+# Print the metrics
+print("\nMultinomial Naive Bayes:")
+print(f"AUC: {roc_auc}")
+print(f"Accuracy: {accuracy}")
+print(f"F1 Score: {f1_score}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"MCC: {mcc}")
 
-
+# # Random Forest With K Fold
+# # Initialize the Random Forest Classifier
+# rf_classifier = RandomForestClassifier()
+#
+# # Initialize StratifiedKFold with 5 folds
+# stratified_kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+#
+# # Perform 5-fold cross-validation with stratification
+# cv_scores = cross_val_score(rf_classifier, X, y, cv=stratified_kfold)
+#
+# # Print the cross-validation scores
+# print("Cross-validation Scores:", cv_scores)
+# print("Mean Accuracy:", np.mean(cv_scores))
+#
+# # Split the data into training and testing sets
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+#
+# # Fit the model to the training data
+# rf_classifier.fit(X_train, y_train)
+#
+# # Make predictions on the test data
+# y_pred = rf_classifier.predict(X_test)
+#
+# # Evaluate the accuracy of the model
+# accuracy = accuracy_score(y_test, y_pred)
+#
+# # Calculate additional metrics
+# roc_auc_rf = roc_auc_score(y_test, y_pred)
+# f1_rf = f1_score(y_test, y_pred)
+# precision_rf = precision_score(y_test, y_pred)
+# recall_rf = recall_score(y_test, y_pred)
+# mcc_rf = matthews_corrcoef(y_test, y_pred)
+#
+# # Print the additional metrics
+# print("Random forest With K fold")
+# print("AUC:", roc_auc_rf)
+# print("Accuracy:", accuracy)
+# print("F1 Score:", f1_rf)
+# print("Precision:", precision_rf)
+# print("Recall:", recall_rf)
+# print("MCC:", mcc_rf)
 
 # Models with Feature Selection
 
@@ -351,39 +455,39 @@ print("MCC:", mcc)
 
 #Neural Network with Feature Selection
 
-print("\nNeural Network with Feature Selection: ")
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
-
-classifier = Sequential()
-
-classifier.add(Input(shape=(X_train.shape[1],)))
-
-classifier.add(Dense(units=64, kernel_initializer="uniform", activation='relu'))
-classifier.add(Dense(units=32, kernel_initializer="uniform", activation='relu'))
-classifier.add(Dense(units=1, kernel_initializer="uniform", activation='sigmoid'))
-
-classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics = ['accuracy'])
-
-classifier.fit(X_train, y_train, batch_size=10, epochs=8,validation_data=(X_test, y_test),verbose=2)
-
-predictions = classifier.predict(X_test)
-
-roc_auc = roc_auc_score(y_test, predictions)
-
-accuracy = accuracy_score(y_test, (predictions > 0.5).astype(int))
-
-f1 = f1_score(y_test, (predictions > 0.5).astype(int))
-
-precision = precision_score(y_test, (predictions > 0.5).astype(int))
-
-recall = recall_score(y_test, (predictions > 0.5).astype(int))
-
-mcc = matthews_corrcoef(y_test, (predictions > 0.5).astype(int))
-
-print("AUC:", roc_auc)
-print("Accuracy:", accuracy)
-print("F1 Score:", f1)
-print("Precision:", precision)
-print("Recall:", recall)
-print("MCC:", mcc)
+# print("\nNeural Network with Feature Selection: ")
+#
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
+#
+# classifier = Sequential()
+#
+# classifier.add(Input(shape=(X_train.shape[1],)))
+#
+# classifier.add(Dense(units=64, kernel_initializer="uniform", activation='relu'))
+# classifier.add(Dense(units=32, kernel_initializer="uniform", activation='relu'))
+# classifier.add(Dense(units=1, kernel_initializer="uniform", activation='sigmoid'))
+#
+# classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics = ['accuracy'])
+#
+# classifier.fit(X_train, y_train, batch_size=10, epochs=8,validation_data=(X_test, y_test),verbose=2)
+#
+# predictions = classifier.predict(X_test)
+#
+# roc_auc = roc_auc_score(y_test, predictions)
+#
+# accuracy = accuracy_score(y_test, (predictions > 0.5).astype(int))
+#
+# f1 = f1_score(y_test, (predictions > 0.5).astype(int))
+#
+# precision = precision_score(y_test, (predictions > 0.5).astype(int))
+#
+# recall = recall_score(y_test, (predictions > 0.5).astype(int))
+#
+# mcc = matthews_corrcoef(y_test, (predictions > 0.5).astype(int))
+#
+# print("AUC:", roc_auc)
+# print("Accuracy:", accuracy)
+# print("F1 Score:", f1)
+# print("Precision:", precision)
+# print("Recall:", recall)
+# print("MCC:", mcc)
